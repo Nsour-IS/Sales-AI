@@ -1,0 +1,228 @@
+'use client'
+
+import React, { useState, useRef, useEffect } from 'react'
+import { Send, Bot, User, ShoppingCart, Star } from 'lucide-react'
+
+interface ChatMessage {
+  id: string
+  sender_type: 'user' | 'ai' | 'system'
+  message_text: string
+  timestamp: Date
+  product_suggestions?: unknown[]
+}
+
+interface ChatInterfaceProps {
+  recognizedPhone?: {
+    brands?: { name?: string; logo_url?: string } | null
+    display_name?: string
+  }
+  onStartChat?: () => void
+}
+
+export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [inputText, setInputText] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  useEffect(() => {
+    // Initialize chat with welcome message
+    if (messages.length === 0) {
+      const welcomeMessage: ChatMessage = {
+        id: '1',
+        sender_type: 'ai',
+        message_text: recognizedPhone 
+          ? `I can see you're interested in the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name}! I'm here to help you find the perfect mobile phone. What are you looking for in your next device?`
+          : "Hi! I'm your AI sales assistant. I can help you find the perfect mobile phone based on your needs. What are you looking for?",
+        timestamp: new Date()
+      }
+      setMessages([welcomeMessage])
+    }
+  }, [recognizedPhone, messages.length])
+
+  const sendMessage = async () => {
+    if (!inputText.trim()) return
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      sender_type: 'user',
+      message_text: inputText,
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInputText('')
+    setIsTyping(true)
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputText,
+          context: {
+            recognized_phone: recognizedPhone,
+            chat_history: messages
+          }
+        }),
+      })
+
+      const result = await response.json()
+
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender_type: 'ai',
+        message_text: result.message || "I'm here to help! Can you tell me more about what you're looking for?",
+        timestamp: new Date(),
+        product_suggestions: result.product_suggestions
+      }
+
+      setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender_type: 'ai',
+        message_text: "I'm having trouble right now. Can you try asking again?",
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsTyping(false)
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-white rounded-xl shadow-lg">
+      {/* Chat Header */}
+      <div className="bg-blue-600 text-white p-4 rounded-t-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Sales AI Assistant</h3>
+            <p className="text-blue-100 text-sm">
+              {recognizedPhone ? 'Product Expert' : 'Ready to help you find the perfect phone'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-4" style={{ maxHeight: '400px' }}>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`flex items-start gap-2 max-w-xs ${message.sender_type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                message.sender_type === 'user' ? 'bg-blue-600' : 'bg-gray-300'
+              }`}>
+                {message.sender_type === 'user' ? (
+                  <User className="w-4 h-4 text-white" />
+                ) : (
+                  <Bot className="w-4 h-4 text-gray-600" />
+                )}
+              </div>
+              <div className={`p-3 rounded-xl ${
+                message.sender_type === 'user' 
+                  ? 'bg-blue-600 text-white rounded-br-md' 
+                  : 'bg-gray-100 text-gray-800 rounded-bl-md'
+              }`}>
+                <p className="text-sm">{message.message_text}</p>
+                
+                {/* Product Suggestions */}
+                {message.product_suggestions && message.product_suggestions.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-semibold text-gray-600">Recommended for you:</p>
+                    {message.product_suggestions.map((phone, index) => {
+                      const typedPhone = phone as { brands?: { name?: string }; display_name?: string; screen_size?: number; processor?: string }
+                      return (
+                      <div key={index} className="bg-white p-3 rounded-lg border text-gray-800">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="font-semibold text-sm">{typedPhone.brands?.name} {typedPhone.display_name}</h4>
+                            <p className="text-xs text-gray-600">
+                              {typedPhone.screen_size}&quot; • {typedPhone.processor}
+                            </p>
+                            <div className="flex items-center mt-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                              <span className="text-xs text-gray-600 ml-1">Perfect match</span>
+                            </div>
+                          </div>
+                          <ShoppingCart className="w-4 h-4 text-blue-600" />
+                        </div>
+                      </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Typing Indicator */}
+        {isTyping && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-gray-600" />
+              </div>
+              <div className="bg-gray-100 p-3 rounded-xl rounded-bl-md">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="p-4 border-t">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Ask about phones, compare models, or get recommendations..."
+            className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            disabled={isTyping}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!inputText.trim() || isTyping}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white p-3 rounded-lg transition-colors"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
