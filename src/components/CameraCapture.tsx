@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { Camera, Square, RotateCcw, X } from 'lucide-react'
 
 interface CameraCaptureProps {

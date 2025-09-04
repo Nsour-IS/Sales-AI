@@ -53,7 +53,7 @@ export interface MobilePhone {
   // AI training data
   key_features?: string[]
   target_audience?: string[]
-  comparison_points?: Record<string, any>
+  comparison_points?: Record<string, string | number | boolean>
   
   created_at: string
   updated_at: string
@@ -127,7 +127,7 @@ export interface ChatMessage {
   session_id: string
   sender_type: 'user' | 'ai' | 'system'
   message_text: string
-  message_data?: Record<string, any>
+  message_data?: Record<string, unknown>
   created_at: string
 }
 
@@ -137,7 +137,7 @@ export interface RecognitionResult {
   image_url?: string
   recognized_phone_id?: string
   confidence_score?: number
-  ai_analysis?: Record<string, any>
+  ai_analysis?: Record<string, unknown>
   created_at: string
 }
 
