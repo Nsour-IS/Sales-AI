@@ -4,17 +4,6 @@
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table (extends Supabase auth.users)
-CREATE TABLE public.user_profiles (
-    id UUID REFERENCES auth.users(id) PRIMARY KEY,
-    full_name TEXT,
-    email TEXT,
-    role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'store_owner', 'admin')),
-    store_id UUID REFERENCES stores(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
 -- Stores table
 CREATE TABLE public.stores (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -25,6 +14,17 @@ CREATE TABLE public.stores (
     email TEXT,
     owner_id UUID REFERENCES auth.users(id),
     is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Users table (extends Supabase auth.users)
+CREATE TABLE public.user_profiles (
+    id UUID REFERENCES auth.users(id) PRIMARY KEY,
+    full_name TEXT,
+    email TEXT,
+    role TEXT DEFAULT 'customer' CHECK (role IN ('customer', 'store_owner', 'admin')),
+    store_id UUID REFERENCES stores(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
