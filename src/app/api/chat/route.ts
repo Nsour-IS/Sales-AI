@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabaseServer'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+const getOpenAIClient = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    return null
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,7 +78,8 @@ Respond naturally and helpfully. When recommending phones, format your response 
     let productSuggestions: typeof phones = []
 
     // Use OpenAI for conversational AI if available
-    if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_key_here') {
+    const openai = getOpenAIClient()
+    if (openai) {
       try {
         const response = await openai.chat.completions.create({
           model: "gpt-4o-mini",
@@ -185,7 +191,7 @@ Respond naturally and helpfully. When recommending phones, format your response 
       product_suggestions: productSuggestions,
       context: {
         total_phones: phones?.length || 0,
-        has_openai: !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_key_here'
+        has_openai: !!getOpenAIClient()
       }
     })
 

@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabaseServer'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+const getOpenAIClient = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    return null
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +31,8 @@ export async function POST(request: NextRequest) {
       condition: 'new'
     }
 
-    if (process.env.OPENAI_API_KEY) {
+    const openai = getOpenAIClient()
+    if (openai) {
       try {
         const response = await openai.chat.completions.create({
           model: "gpt-4o-mini",
