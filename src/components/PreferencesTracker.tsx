@@ -90,10 +90,10 @@ export default function PreferencesTracker({
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors z-20"
+        className="fixed bottom-4 md:bottom-6 right-4 md:right-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-4 md:p-5 rounded-full shadow-lg transition-colors z-20 touch-manipulation"
         title="Customer Preferences"
       >
-        <Settings className="w-5 h-5" />
+        <Settings className="w-6 h-6 md:w-7 md:h-7" />
       </button>
     )
   }
@@ -132,10 +132,10 @@ export default function PreferencesTracker({
                 <button
                   key={option.value}
                   onClick={() => handlePreferenceChange('budget_range', option.value)}
-                  className={`p-3 rounded-lg text-sm font-medium transition-colors ${
+                  className={`p-4 md:p-5 rounded-xl text-sm md:text-base font-medium transition-colors touch-manipulation ${
                     preferences.budget_range === option.value
                       ? `bg-${option.color}-600 text-white`
-                      : `bg-${option.color}-100 text-${option.color}-700 hover:bg-${option.color}-200`
+                      : `bg-${option.color}-100 text-${option.color}-700 hover:bg-${option.color}-200 active:bg-${option.color}-300`
                   }`}
                 >
                   {option.label}

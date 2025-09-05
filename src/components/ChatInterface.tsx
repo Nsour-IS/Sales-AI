@@ -316,28 +316,28 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4" style={{ maxHeight: '400px' }}>
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4" style={{ maxHeight: '450px' }}>
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`flex items-start gap-2 max-w-xs ${message.sender_type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            <div className={`flex items-start gap-3 max-w-sm md:max-w-md ${message.sender_type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
                 message.sender_type === 'user' ? 'bg-blue-600' : 'bg-gray-300'
               }`}>
                 {message.sender_type === 'user' ? (
-                  <User className="w-4 h-4 text-white" />
+                  <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 ) : (
-                  <Bot className="w-4 h-4 text-gray-600" />
+                  <Bot className="w-5 h-5 md:w-6 md:h-6 text-gray-600" />
                 )}
               </div>
-              <div className={`p-3 rounded-xl ${
+              <div className={`p-4 md:p-5 rounded-xl ${
                 message.sender_type === 'user' 
                   ? 'bg-blue-600 text-white rounded-br-md' 
                   : 'bg-gray-100 text-gray-800 rounded-bl-md'
               }`}>
-                <p className="text-sm">{message.message_text}</p>
+                <p className="text-sm md:text-base leading-relaxed">{message.message_text}</p>
                 
                 {/* Product Suggestions */}
                 {message.product_suggestions && message.product_suggestions.length > 0 && (
@@ -392,17 +392,17 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
+      <div className="p-4 md:p-6 border-t">
+        <div className="flex gap-3">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder={isListening ? "Listening..." : isVoiceTyping ? "Voice typing..." : "Ask about phones, compare models, or get recommendations..."}
-            className={`flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+            className={`flex-1 p-4 md:p-5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-base md:text-lg ${
               isListening ? 'bg-red-50 border-red-300' : isVoiceTyping ? 'bg-blue-50 border-blue-300' : ''
-            }`}
+            } touch-manipulation`}
             disabled={isTyping || isListening || isVoiceTyping}
           />
           
@@ -411,19 +411,19 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
             <button
               onClick={toggleListening}
               disabled={isTyping || isVoiceTyping}
-              className={`p-3 rounded-lg transition-colors ${
+              className={`p-4 md:p-5 rounded-xl transition-colors touch-manipulation ${
                 isListening 
-                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  ? 'bg-red-600 hover:bg-red-700 active:bg-red-800 text-white' 
                   : isVoiceTyping
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  : 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-700'
               }`}
               title={isListening ? 'Stop listening' : isVoiceTyping ? 'Processing voice...' : 'Start voice input'}
             >
               {isListening ? (
-                <MicOff className="w-4 h-4" />
+                <MicOff className="w-5 h-5 md:w-6 md:h-6" />
               ) : (
-                <Mic className="w-4 h-4" />
+                <Mic className="w-5 h-5 md:w-6 md:h-6" />
               )}
             </button>
           )}
@@ -431,9 +431,9 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
           <button
             onClick={sendMessage}
             disabled={!inputText.trim() || isTyping || isListening || isVoiceTyping}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white p-3 rounded-lg transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-300 text-white p-4 md:p-5 rounded-xl transition-colors touch-manipulation"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5 md:w-6 md:h-6" />
           </button>
         </div>
         

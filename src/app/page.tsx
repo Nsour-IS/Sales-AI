@@ -109,17 +109,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto p-4 h-screen flex flex-col lg:flex-row gap-6">
+      <div className="container mx-auto p-3 md:p-6 h-screen flex flex-col xl:flex-row gap-4 md:gap-6">
         
         {/* Left Panel - Camera & Analysis */}
-        <div className="flex-1 max-w-md mx-auto lg:mx-0">
+        <div className="flex-1 max-w-lg mx-auto xl:mx-0 xl:max-w-md">
           {/* Header */}
-          <div className="text-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Sales AI
+          <div className="text-center py-4 md:py-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              📱 Sales AI
             </h1>
-            <p className="text-gray-600 text-sm">
-              Scan any mobile phone and chat with our AI sales assistant
+            <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-sm mx-auto">
+              Scan any mobile phone and chat with our AI sales assistant for personalized recommendations
             </p>
           </div>
 
@@ -131,51 +131,51 @@ export default function Home() {
               isAnalyzing={isAnalyzing}
             />
           ) : (
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
               <button
                 onClick={() => setShowCamera(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+                className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-5 md:py-6 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg md:text-xl touch-manipulation"
               >
                 📱 Scan Mobile Phone
               </button>
               
               {!analysisResult && !showChat && (
-                <div className="mt-4 text-center space-y-3">
-                  <p className="text-gray-500 text-sm mb-3">Or explore phones directly</p>
-                  <div className="flex flex-col gap-2">
+                <div className="mt-6 text-center space-y-4">
+                  <p className="text-gray-500 text-sm md:text-base mb-4">Or explore phones directly</p>
+                  <div className="flex flex-col gap-3">
                     <button
                       onClick={() => setShowChat(true)}
-                      className="text-blue-600 hover:text-blue-700 font-medium py-2 px-4 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
+                      className="text-blue-600 hover:text-blue-700 active:text-blue-800 font-medium py-3 md:py-4 px-6 rounded-xl border border-blue-200 hover:bg-blue-50 active:bg-blue-100 transition-colors text-base md:text-lg touch-manipulation"
                     >
                       💬 Start Chat
                     </button>
-                    <div className="text-xs text-gray-400 mb-2">Quick Compare</div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="text-xs md:text-sm text-gray-400 mb-2 mt-2">Quick Compare</div>
+                    <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => handleComparePhones('gamers', undefined)}
                         disabled={isLoadingComparison}
-                        className="text-sm py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50"
+                        className="text-sm md:text-base py-3 md:py-4 px-3 md:px-4 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 active:bg-purple-300 transition-colors disabled:opacity-50 font-medium touch-manipulation"
                       >
                         🎮 Gaming Phones
                       </button>
                       <button
                         onClick={() => handleComparePhones('photographers', undefined)}
                         disabled={isLoadingComparison}
-                        className="text-sm py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+                        className="text-sm md:text-base py-3 md:py-4 px-3 md:px-4 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 active:bg-green-300 transition-colors disabled:opacity-50 font-medium touch-manipulation"
                       >
                         📸 Camera Phones
                       </button>
                       <button
                         onClick={() => handleComparePhones(undefined, 'low')}
                         disabled={isLoadingComparison}
-                        className="text-sm py-2 px-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors disabled:opacity-50"
+                        className="text-sm md:text-base py-3 md:py-4 px-3 md:px-4 bg-yellow-100 text-yellow-700 rounded-xl hover:bg-yellow-200 active:bg-yellow-300 transition-colors disabled:opacity-50 font-medium touch-manipulation"
                       >
                         💰 Budget Phones
                       </button>
                       <button
                         onClick={() => handleComparePhones(undefined, 'high')}
                         disabled={isLoadingComparison}
-                        className="text-sm py-2 px-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                        className="text-sm md:text-base py-3 md:py-4 px-3 md:px-4 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 active:bg-red-300 transition-colors disabled:opacity-50 font-medium touch-manipulation"
                       >
                         ⭐ Premium Phones
                       </button>
@@ -244,15 +244,15 @@ export default function Home() {
 
         {/* Right Panel - Chat Interface */}
         {showChat && (
-          <div className="flex-1 max-w-lg mx-auto lg:mx-0">
-            <div className="h-full flex flex-col" style={{ maxHeight: '600px' }}>
-              <div className="mb-4 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-900">AI Sales Assistant</h2>
+          <div className="flex-1 max-w-2xl mx-auto xl:mx-0">
+            <div className="h-full flex flex-col" style={{ maxHeight: '700px' }}>
+              <div className="mb-4 flex justify-between items-center bg-white rounded-xl shadow-sm p-4">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">🤖 AI Sales Assistant</h2>
                 <button
                   onClick={() => setShowChat(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 active:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
                 >
-                  ✕
+                  <span className="text-xl">✕</span>
                 </button>
               </div>
               <div className="flex-1">
