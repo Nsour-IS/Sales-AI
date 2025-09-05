@@ -7,6 +7,17 @@ import ProductComparison from '@/components/ProductComparison'
 import PreferencesTracker from '@/components/PreferencesTracker'
 import { MobilePhone } from '@/lib/types'
 
+interface CustomerPreferences {
+  budget_range: 'low' | 'mid' | 'high' | ''
+  primary_use: 'photography' | 'gaming' | 'business' | 'daily_use' | ''
+  screen_size: 'compact' | 'standard' | 'large' | ''
+  brand_preference: string
+  battery_importance: 'low' | 'medium' | 'high' | ''
+  camera_importance: 'low' | 'medium' | 'high' | ''
+  storage_needs: 'basic' | 'moderate' | 'high' | ''
+  color_preference: string
+}
+
 interface AnalysisResult {
   success: boolean
   analysis: {
@@ -34,7 +45,7 @@ export default function Home() {
   const [showComparison, setShowComparison] = useState(false)
   const [comparisonPhones, setComparisonPhones] = useState<(MobilePhone & { brands: { name?: string; logo_url?: string } | null })[]>([])
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
-  const [customerPreferences, setCustomerPreferences] = useState<any>(null)
+  const [customerPreferences, setCustomerPreferences] = useState<CustomerPreferences | null>(null)
 
   const handleImageCapture = async (imageData: string) => {
     setIsAnalyzing(true)
@@ -289,7 +300,7 @@ export default function Home() {
       {/* Customer Preferences Tracker */}
       <PreferencesTracker
         onPreferencesChange={setCustomerPreferences}
-        initialPreferences={customerPreferences}
+        initialPreferences={customerPreferences || undefined}
       />
     </div>
   )

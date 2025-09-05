@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { X, Check, ArrowRight } from 'lucide-react'
+import { X, ArrowRight } from 'lucide-react'
 
 import { MobilePhone } from '@/lib/types'
 

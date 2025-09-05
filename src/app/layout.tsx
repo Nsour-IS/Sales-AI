@@ -15,13 +15,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Sales AI - Mobile Phone Assistant",
   description: "Scan any mobile phone and chat with our AI sales assistant for personalized recommendations",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-  themeColor: "#2563eb",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Sales AI"
   }
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#2563eb"
 };
 
 export default function RootLayout({

@@ -17,7 +17,16 @@ interface ChatInterfaceProps {
     display_name?: string
   }
   onStartChat?: () => void
-  customerPreferences?: any
+  customerPreferences?: {
+    budget_range?: 'low' | 'mid' | 'high' | ''
+    primary_use?: 'photography' | 'gaming' | 'business' | 'daily_use' | ''
+    screen_size?: 'compact' | 'standard' | 'large' | ''
+    brand_preference?: string
+    battery_importance?: 'low' | 'medium' | 'high' | ''
+    camera_importance?: 'low' | 'medium' | 'high' | ''
+    storage_needs?: 'basic' | 'moderate' | 'high' | ''
+    color_preference?: string
+  } | null
 }
 
 export default function ChatInterface({ recognizedPhone, customerPreferences }: ChatInterfaceProps) {
