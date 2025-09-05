@@ -20,7 +20,7 @@ interface AnalysisResult {
     }
   }
   matched_phone?: MobilePhone & {
-    brands: { name: string; logo_url?: string } | null
+    brands: { name?: string; logo_url?: string } | null
   }
   total_phones_in_db: number
 }
@@ -31,7 +31,7 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
-  const [comparisonPhones, setComparisonPhones] = useState<(MobilePhone & { brands: { name: string; logo_url?: string } | null })[]>([])
+  const [comparisonPhones, setComparisonPhones] = useState<(MobilePhone & { brands: { name?: string; logo_url?: string } | null })[]>([])
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
 
   const handleImageCapture = async (imageData: string) => {
@@ -84,7 +84,7 @@ export default function Home() {
     }
   }
 
-  const handleSelectPhoneFromComparison = (phone: MobilePhone & { brands: { name: string; logo_url?: string } | null }) => {
+  const handleSelectPhoneFromComparison = (phone: MobilePhone & { brands: { name?: string; logo_url?: string } | null }) => {
     setAnalysisResult({
       success: true,
       analysis: {
