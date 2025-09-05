@@ -4,6 +4,7 @@ import { useState } from 'react'
 import CameraCapture from '@/components/CameraCapture'
 import ChatInterface from '@/components/ChatInterface'
 import ProductComparison from '@/components/ProductComparison'
+import PreferencesTracker from '@/components/PreferencesTracker'
 import { MobilePhone } from '@/lib/types'
 
 interface AnalysisResult {
@@ -33,6 +34,7 @@ export default function Home() {
   const [showComparison, setShowComparison] = useState(false)
   const [comparisonPhones, setComparisonPhones] = useState<(MobilePhone & { brands: { name?: string; logo_url?: string } | null })[]>([])
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
+  const [customerPreferences, setCustomerPreferences] = useState<any>(null)
 
   const handleImageCapture = async (imageData: string) => {
     setIsAnalyzing(true)
@@ -257,6 +259,7 @@ export default function Home() {
                 <ChatInterface 
                   recognizedPhone={analysisResult?.matched_phone}
                   onStartChat={() => setShowChat(true)}
+                  customerPreferences={customerPreferences}
                 />
               </div>
             </div>
@@ -282,6 +285,12 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Customer Preferences Tracker */}
+      <PreferencesTracker
+        onPreferencesChange={setCustomerPreferences}
+        initialPreferences={customerPreferences}
+      />
     </div>
   )
 }

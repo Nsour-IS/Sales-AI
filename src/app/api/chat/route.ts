@@ -52,8 +52,21 @@ export async function POST(request: NextRequest) {
 
     const recognizedPhone = context?.recognized_phone
     const chatHistory = context?.chat_history || []
+    const customerPreferences = context?.customer_preferences
 
     // Build conversation context
+    const preferencesContext = customerPreferences ? `
+Customer preferences:
+- Budget range: ${customerPreferences.budget_range || 'not specified'}
+- Primary use: ${customerPreferences.primary_use || 'not specified'}  
+- Screen size preference: ${customerPreferences.screen_size || 'not specified'}
+- Brand preference: ${customerPreferences.brand_preference || 'no preference'}
+- Camera importance: ${customerPreferences.camera_importance || 'not specified'}
+- Battery importance: ${customerPreferences.battery_importance || 'not specified'}
+- Storage needs: ${customerPreferences.storage_needs || 'not specified'}
+- Color preference: ${customerPreferences.color_preference || 'no preference'}
+` : ''
+
     const systemPrompt = `You are a knowledgeable mobile phone sales assistant. Your goal is to help customers find the perfect mobile phone based on their needs.
 
 Available phones in our database:
@@ -67,14 +80,18 @@ Guidelines:
 5. Explain technical features in simple terms
 6. Focus on benefits, not just specifications
 7. Always suggest phones from our available inventory
+8. Use customer preferences to provide personalized recommendations
 
 Current conversation context:
 - Customer has ${recognizedPhone ? `shown interest in: ${recognizedPhone.brands?.name} ${recognizedPhone.display_name}` : 'not scanned any phone yet'}
 - Chat history: ${chatHistory.length} messages
+${preferencesContext}
 
 Respond naturally and helpfully. When recommending phones, format your response to include specific models from our database.`
 
-    let aiResponse = "I'd be happy to help you find the perfect phone! What's most important to you - camera quality, battery life, performance, or something else?"
+    let aiResponse = customerPreferences 
+      ? `I can see you're looking for ${customerPreferences.primary_use === 'photography' ? 'a great camera phone' : customerPreferences.primary_use === 'gaming' ? 'a powerful gaming phone' : customerPreferences.primary_use === 'business' ? 'a professional business phone' : 'a reliable everyday phone'}${customerPreferences.budget_range ? ` in the ${customerPreferences.budget_range} price range` : ''}. How can I help you today?`
+      : "I'd be happy to help you find the perfect phone! What's most important to you - camera quality, battery life, performance, or something else?"
     let productSuggestions: typeof phones = []
 
     // Use OpenAI for conversational AI if available
@@ -97,13 +114,49 @@ Respond naturally and helpfully. When recommending phones, format your response 
 
         aiResponse = response.choices[0]?.message?.content || aiResponse
 
-        // Extract product recommendations based on the conversation
+        // Extract product recommendations based on the conversation and preferences
         if (phones && phones.length > 0) {
-          // Simple recommendation logic based on keywords
-          const lowerMessage = message.toLowerCase()
           let recommendations: typeof phones = [...phones]
 
-          // Filter by mentioned preferences
+          // Apply customer preferences first
+          if (customerPreferences) {
+            // Filter by budget range
+            if (customerPreferences.budget_range) {
+              recommendations = recommendations.filter(phone => 
+                phone.price_range === customerPreferences.budget_range
+              )
+            }
+
+            // Filter by primary use
+            if (customerPreferences.primary_use) {
+              const useMap: Record<string, string[]> = {
+                'photography': ['photographers', 'content creators'],
+                'gaming': ['gamers', 'power users'],
+                'business': ['professionals', 'business users'],
+                'daily_use': ['general users', 'everyday users']
+              }
+              const targetAudience = useMap[customerPreferences.primary_use] || []
+              if (targetAudience.length > 0) {
+                recommendations = recommendations.filter(phone =>
+                  phone.target_audience?.some((audience: string) =>
+                    targetAudience.some(target => audience.toLowerCase().includes(target))
+                  )
+                )
+              }
+            }
+
+            // Filter by brand preference
+            if (customerPreferences.brand_preference && customerPreferences.brand_preference.trim()) {
+              const preferredBrand = customerPreferences.brand_preference.toLowerCase()
+              recommendations = recommendations.filter(phone =>
+                phone.brands?.name?.toLowerCase().includes(preferredBrand)
+              )
+            }
+          }
+
+          // Apply message-based filters on top of preferences
+          const lowerMessage = message.toLowerCase()
+
           if (lowerMessage.includes('camera') || lowerMessage.includes('photo')) {
             recommendations = recommendations.filter(phone => 
               phone.key_features?.some((feature: string) => 
@@ -126,12 +179,17 @@ Respond naturally and helpfully. When recommending phones, format your response 
             recommendations = recommendations.filter(phone => phone.price_range === 'high')
           }
 
-          // If we have the recognized phone, suggest similar or better options
+          // If we have the recognized phone and no specific filters applied, suggest similar options
           if (recognizedPhone && recommendations.length === phones.length) {
             const recognizedBrand = recognizedPhone.brands?.name?.toLowerCase()
             recommendations = recommendations.filter(phone => 
               phone.brands?.name?.toLowerCase() === recognizedBrand
             ).slice(0, 3)
+          }
+
+          // If no recommendations match preferences, fall back to all phones
+          if (recommendations.length === 0) {
+            recommendations = [...phones]
           }
 
           // Limit to top 3 suggestions

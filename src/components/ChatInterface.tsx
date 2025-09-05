@@ -17,9 +17,10 @@ interface ChatInterfaceProps {
     display_name?: string
   }
   onStartChat?: () => void
+  customerPreferences?: any
 }
 
-export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
+export default function ChatInterface({ recognizedPhone, customerPreferences }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -120,7 +121,8 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
           message: inputText,
           context: {
             recognized_phone: recognizedPhone,
-            chat_history: messages
+            chat_history: messages,
+            customer_preferences: customerPreferences
           }
         }),
       })
@@ -227,7 +229,8 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
           message: messageText,
           context: {
             recognized_phone: recognizedPhone,
-            chat_history: messages
+            chat_history: messages,
+            customer_preferences: customerPreferences
           }
         }),
       })
