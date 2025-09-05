@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import CameraCapture from '@/components/CameraCapture'
 import ChatInterface from '@/components/ChatInterface'
+import ProductComparison from '@/components/ProductComparison'
 import { MobilePhone } from '@/lib/types'
 
 interface AnalysisResult {
@@ -29,6 +30,9 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [showChat, setShowChat] = useState(false)
+  const [showComparison, setShowComparison] = useState(false)
+  const [comparisonPhones, setComparisonPhones] = useState<(MobilePhone & { brands: { name: string; logo_url?: string } | null })[]>([])
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false)
 
   const handleImageCapture = async (imageData: string) => {
     setIsAnalyzing(true)
@@ -50,6 +54,55 @@ export default function Home() {
     } finally {
       setIsAnalyzing(false)
     }
+  }
+
+  const handleComparePhones = async (category?: string, priceRange?: string) => {
+    setIsLoadingComparison(true)
+    
+    try {
+      const response = await fetch('/api/compare', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          category,
+          priceRange,
+          features: []
+        }),
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        setComparisonPhones(result.phones)
+        setShowComparison(true)
+      }
+    } catch (error) {
+      console.error('Comparison failed:', error)
+    } finally {
+      setIsLoadingComparison(false)
+    }
+  }
+
+  const handleSelectPhoneFromComparison = (phone: MobilePhone & { brands: { name: string; logo_url?: string } | null }) => {
+    setAnalysisResult({
+      success: true,
+      analysis: {
+        recognized_phone_id: phone.id,
+        confidence_score: 0.95,
+        ai_analysis: {
+          detected_features: phone.key_features || [],
+          estimated_brand: phone.brands?.name || 'Unknown',
+          estimated_model: phone.display_name || 'Unknown',
+          color: 'Unknown',
+          condition: 'new'
+        }
+      },
+      matched_phone: phone,
+      total_phones_in_db: 25
+    })
+    setShowComparison(false)
+    setShowChat(true)
   }
 
   return (
@@ -85,14 +138,47 @@ export default function Home() {
               </button>
               
               {!analysisResult && !showChat && (
-                <div className="mt-4 text-center">
-                  <p className="text-gray-500 text-sm mb-3">Or start chatting directly</p>
-                  <button
-                    onClick={() => setShowChat(true)}
-                    className="text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    💬 Start Chat
-                  </button>
+                <div className="mt-4 text-center space-y-3">
+                  <p className="text-gray-500 text-sm mb-3">Or explore phones directly</p>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => setShowChat(true)}
+                      className="text-blue-600 hover:text-blue-700 font-medium py-2 px-4 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
+                    >
+                      💬 Start Chat
+                    </button>
+                    <div className="text-xs text-gray-400 mb-2">Quick Compare</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleComparePhones('gamers', undefined)}
+                        disabled={isLoadingComparison}
+                        className="text-sm py-2 px-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors disabled:opacity-50"
+                      >
+                        🎮 Gaming Phones
+                      </button>
+                      <button
+                        onClick={() => handleComparePhones('photographers', undefined)}
+                        disabled={isLoadingComparison}
+                        className="text-sm py-2 px-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+                      >
+                        📸 Camera Phones
+                      </button>
+                      <button
+                        onClick={() => handleComparePhones(undefined, 'low')}
+                        disabled={isLoadingComparison}
+                        className="text-sm py-2 px-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors disabled:opacity-50"
+                      >
+                        💰 Budget Phones
+                      </button>
+                      <button
+                        onClick={() => handleComparePhones(undefined, 'high')}
+                        disabled={isLoadingComparison}
+                        className="text-sm py-2 px-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                      >
+                        ⭐ Premium Phones
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -177,6 +263,25 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Product Comparison Modal */}
+      {showComparison && comparisonPhones.length > 0 && (
+        <ProductComparison
+          phones={comparisonPhones}
+          onClose={() => setShowComparison(false)}
+          onSelectPhone={handleSelectPhoneFromComparison}
+        />
+      )}
+
+      {/* Loading Comparison Overlay */}
+      {isLoadingComparison && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 shadow-xl flex flex-col items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-700">Loading phone comparison...</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
