@@ -156,6 +156,13 @@ Respond naturally and helpfully. When recommending phones, format your response 
         productSuggestions = phones?.filter(phone => 
           phone.target_audience?.includes('gamers') || phone.target_audience?.includes('power users')
         ).slice(0, 2) || []
+      } else if (lowerMessage.includes('video') || lowerMessage.includes('youtube') || lowerMessage.includes('content')) {
+        aiResponse = "Great! For video content creation, you'll want excellent cameras, good stabilization, and powerful processing. Do you mainly shoot indoors or outdoors?"
+        productSuggestions = phones?.filter(phone => 
+          phone.key_features?.some((feature: string) => 
+            feature.toLowerCase().includes('camera') || feature.toLowerCase().includes('video')
+          )
+        ).slice(0, 2) || []
       } else if (lowerMessage.includes('budget')) {
         aiResponse = "I understand you're looking for good value! What's your budget range, and what features are most important to you?"
         productSuggestions = phones?.filter(phone => 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, ShoppingCart, Star } from 'lucide-react'
+import { Send, Bot, User, ShoppingCart, Star, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
 
 interface ChatMessage {
   id: string
@@ -23,7 +23,13 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true)
+  const [speechSupported, setSpeechSupported] = useState(false)
+  const [isVoiceTyping, setIsVoiceTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<any>(null)
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -32,6 +38,40 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    // Initialize speech recognition
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition()
+        recognitionRef.current.continuous = false
+        recognitionRef.current.interimResults = false
+        recognitionRef.current.lang = 'en-US'
+        
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript
+          setIsListening(false)
+          animateTextTyping(transcript)
+        }
+        
+        recognitionRef.current.onerror = () => {
+          setIsListening(false)
+        }
+        
+        recognitionRef.current.onend = () => {
+          setIsListening(false)
+        }
+        
+        setSpeechSupported(true)
+      }
+      
+      // Initialize speech synthesis
+      if (window.speechSynthesis) {
+        speechSynthesisRef.current = window.speechSynthesis
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Initialize chat with welcome message
@@ -88,6 +128,11 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
       }
 
       setMessages(prev => [...prev, aiMessage])
+      
+      // Speak the AI response if voice is enabled
+      if (isVoiceEnabled && speechSynthesisRef.current) {
+        speakText(aiMessage.message_text)
+      }
     } catch (error) {
       console.error('Chat error:', error)
       const errorMessage: ChatMessage = {
@@ -99,6 +144,118 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsTyping(false)
+    }
+  }
+
+  const speakText = (text: string) => {
+    if (speechSynthesisRef.current) {
+      // Cancel any ongoing speech
+      speechSynthesisRef.current.cancel()
+      
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 0.9
+      utterance.pitch = 1.0
+      utterance.volume = 0.8
+      
+      speechSynthesisRef.current.speak(utterance)
+    }
+  }
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return
+    
+    if (isListening) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+    } else {
+      recognitionRef.current.start()
+      setIsListening(true)
+    }
+  }
+
+  const animateTextTyping = (text: string) => {
+    setIsVoiceTyping(true)
+    setInputText('')
+    
+    let currentIndex = 0
+    const typeInterval = setInterval(() => {
+      if (currentIndex <= text.length) {
+        setInputText(text.slice(0, currentIndex))
+        currentIndex++
+      } else {
+        clearInterval(typeInterval)
+        setIsVoiceTyping(false)
+        // Auto-send after typing animation completes
+        setTimeout(() => {
+          if (text.trim()) {
+            sendVoiceMessage(text)
+          }
+        }, 300)
+      }
+    }, 50) // 50ms per character for smooth typing effect
+  }
+
+  const sendVoiceMessage = async (messageText: string) => {
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      sender_type: 'user',
+      message_text: messageText,
+      timestamp: new Date()
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setInputText('')
+    setIsTyping(true)
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          context: {
+            recognized_phone: recognizedPhone,
+            chat_history: messages
+          }
+        }),
+      })
+
+      const result = await response.json()
+
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender_type: 'ai',
+        message_text: result.message || "I'm here to help! Can you tell me more about what you're looking for?",
+        timestamp: new Date(),
+        product_suggestions: result.product_suggestions
+      }
+
+      setMessages(prev => [...prev, aiMessage])
+      
+      // Speak the AI response if voice is enabled
+      if (isVoiceEnabled && speechSynthesisRef.current) {
+        speakText(aiMessage.message_text)
+      }
+    } catch (error) {
+      console.error('Chat error:', error)
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender_type: 'ai',
+        message_text: "I'm having trouble right now. Can you try asking again?",
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsTyping(false)
+    }
+  }
+
+  const toggleVoice = () => {
+    setIsVoiceEnabled(!isVoiceEnabled)
+    if (isVoiceEnabled && speechSynthesisRef.current) {
+      speechSynthesisRef.current.cancel()
     }
   }
 
@@ -117,12 +274,31 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
             <Bot className="w-5 h-5" />
           </div>
-          <div>
+          <div className="flex-1">
             <h3 className="font-semibold">Sales AI Assistant</h3>
             <p className="text-blue-100 text-sm">
               {recognizedPhone ? 'Product Expert' : 'Ready to help you find the perfect phone'}
             </p>
           </div>
+          
+          {/* Voice Controls */}
+          {speechSupported && (
+            <div className="flex gap-2">
+              <button
+                onClick={toggleVoice}
+                className={`p-2 rounded-full transition-colors ${
+                  isVoiceEnabled ? 'bg-blue-500 hover:bg-blue-400' : 'bg-blue-300 hover:bg-blue-400'
+                }`}
+                title={isVoiceEnabled ? 'Voice responses on' : 'Voice responses off'}
+              >
+                {isVoiceEnabled ? (
+                  <Volume2 className="w-4 h-4 text-white" />
+                ) : (
+                  <VolumeX className="w-4 h-4 text-white" />
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -210,18 +386,59 @@ export default function ChatInterface({ recognizedPhone }: ChatInterfaceProps) {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Ask about phones, compare models, or get recommendations..."
-            className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            disabled={isTyping}
+            placeholder={isListening ? "Listening..." : isVoiceTyping ? "Voice typing..." : "Ask about phones, compare models, or get recommendations..."}
+            className={`flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+              isListening ? 'bg-red-50 border-red-300' : isVoiceTyping ? 'bg-blue-50 border-blue-300' : ''
+            }`}
+            disabled={isTyping || isListening || isVoiceTyping}
           />
+          
+          {/* Voice Input Button */}
+          {speechSupported && (
+            <button
+              onClick={toggleListening}
+              disabled={isTyping || isVoiceTyping}
+              className={`p-3 rounded-lg transition-colors ${
+                isListening 
+                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                  : isVoiceTyping
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+              }`}
+              title={isListening ? 'Stop listening' : isVoiceTyping ? 'Processing voice...' : 'Start voice input'}
+            >
+              {isListening ? (
+                <MicOff className="w-4 h-4" />
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          
           <button
             onClick={sendMessage}
-            disabled={!inputText.trim() || isTyping}
+            disabled={!inputText.trim() || isTyping || isListening || isVoiceTyping}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white p-3 rounded-lg transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
+        
+        {/* Voice Status */}
+        {speechSupported && (isListening || isVoiceTyping) && (
+          <div className="mt-2 text-center">
+            {isListening && (
+              <p className="text-red-600 text-sm font-medium animate-pulse">
+                🎤 Listening... Speak now
+              </p>
+            )}
+            {isVoiceTyping && (
+              <p className="text-blue-600 text-sm font-medium">
+                ⌨️ Converting speech to text...
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
