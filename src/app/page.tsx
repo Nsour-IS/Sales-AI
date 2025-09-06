@@ -59,12 +59,15 @@ export default function Home() {
 
   // Track page load and component mount
   useEffect(() => {
-    trackEvent('page_load', {
-      page: 'home',
-      timestamp: new Date().toISOString(),
-      user_agent: navigator.userAgent,
-      screen_resolution: `${screen.width}x${screen.height}`
-    });
+    // Ensure we're on client-side before accessing browser APIs
+    if (typeof window !== 'undefined') {
+      trackEvent('page_load', {
+        page: 'home',
+        timestamp: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+        screen_resolution: `${screen.width}x${screen.height}`
+      });
+    }
   }, [])
 
   const handleImageCapture = async (imageData: string) => {
