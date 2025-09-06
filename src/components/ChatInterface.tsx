@@ -37,6 +37,8 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [isVoiceTyping, setIsVoiceTyping] = useState(false)
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`)
+  const [customerId] = useState(() => `customer_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<unknown>(null)
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null)
@@ -121,13 +123,15 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
     setIsTyping(true)
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message: inputText,
+          sessionId,
+          customerId,
           context: {
             recognized_phone: recognizedPhone,
             chat_history: messages,
@@ -143,7 +147,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
         sender_type: 'ai',
         message_text: result.message || "I'm here to help! Can you tell me more about what you're looking for?",
         timestamp: new Date(),
-        product_suggestions: result.product_suggestions
+        product_suggestions: result.additional_data?.workflow_result?.recommendations || result.product_suggestions
       }
 
       setMessages(prev => [...prev, aiMessage])
@@ -151,6 +155,17 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       // Speak the AI response if voice is enabled
       if (isVoiceEnabled && speechSynthesisRef.current) {
         speakText(aiMessage.message_text)
+      }
+      
+      // Log agentic decision info for debugging (can be removed in production)
+      if (result.decision) {
+        console.log('🧠 Jad Decision:', {
+          action: result.decision.action,
+          confidence: result.decision.confidence,
+          reasoning: result.decision.reasoning,
+          agent_state: result.agent_state,
+          performance: result.performance
+        })
       }
     } catch (error) {
       console.error('Chat error:', error)
@@ -172,9 +187,34 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       speechSynthesisRef.current.cancel()
       
       const utterance = new SpeechSynthesisUtterance(text)
-      utterance.rate = 0.9
-      utterance.pitch = 1.0
-      utterance.volume = 0.8
+      
+      // Get available voices
+      const voices = speechSynthesisRef.current.getVoices()
+      
+      // Try to find a good young male voice
+      const maleVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('male') ||
+        voice.name.toLowerCase().includes('daniel') ||
+        voice.name.toLowerCase().includes('alex') ||
+        voice.name.toLowerCase().includes('sam') ||
+        voice.name.toLowerCase().includes('thomas') ||
+        voice.name.toLowerCase().includes('aaron') ||
+        voice.name.toLowerCase().includes('en')
+      )
+      
+      // Fallback to any English male voice or first available voice
+      const selectedVoice = maleVoice || voices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.toLowerCase().includes('male')
+      ) || voices[0]
+      
+      if (selectedVoice) {
+        utterance.voice = selectedVoice
+      }
+      
+      // Voice settings for young, friendly male voice
+      utterance.rate = 0.95        // Slightly faster for youthful energy
+      utterance.pitch = 1.1        // Slightly higher for younger sound
+      utterance.volume = 0.85      // Clear and confident
       
       speechSynthesisRef.current.speak(utterance)
     }
