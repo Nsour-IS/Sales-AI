@@ -37,6 +37,8 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [isVoiceTyping, setIsVoiceTyping] = useState(false)
+  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState<number | null>(null)
+  const [showVoiceSelector, setShowVoiceSelector] = useState(false)
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`)
   const [customerId] = useState(() => `customer_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -192,7 +194,28 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       const voices = speechSynthesisRef.current.getVoices()
       
       // Debug: Log available voices to console for troubleshooting
-      console.log('🎤 Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })))
+      console.log('🎤 Available voices:', voices.map((v, i) => ({ index: i, name: v.name, lang: v.lang })))
+      console.log('🎤 Total voices available:', voices.length)
+      console.log('🎤 VOICE OVERRIDE: If you want to manually select a voice, run: window.setJadVoice(index)')
+      
+      // Expose voice selector function globally for manual override
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).setJadVoice = (index: number) => {
+          if (index >= 0 && index < voices.length) {
+            setSelectedVoiceIndex(index)
+            console.log(`🎤 Voice override set to: ${voices[index].name}`)
+          } else {
+            console.log(`🎤 Invalid voice index. Use 0-${voices.length - 1}`)
+          }
+        }
+        
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).clearJadVoice = () => {
+          setSelectedVoiceIndex(null)
+          console.log('🎤 Voice override cleared - using automatic selection')
+        }
+      }
       
       // Try to find a good young male voice - prioritize specific male names
       const maleVoice = voices.find(voice => {
@@ -228,32 +251,48 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
         return true
       }) : null
       
-      // Final selection
-      const selectedVoice = maleVoice || fallbackMaleVoice || voices.find(voice => 
-        voice.lang.startsWith('en')
-      ) || voices[0]
+      // Final selection - use manual override if available
+      const selectedVoice = selectedVoiceIndex !== null && voices[selectedVoiceIndex] ? 
+        voices[selectedVoiceIndex] : 
+        maleVoice || fallbackMaleVoice || voices.find(voice => 
+          voice.lang.startsWith('en')
+        ) || voices[0]
       
       console.log('🎤 Selected voice for Jad:', selectedVoice?.name, selectedVoice?.lang)
+      if (selectedVoiceIndex !== null) console.log('🎤 Using manual voice override')
       
       if (selectedVoice) {
         utterance.voice = selectedVoice
       }
       
       // Voice settings for young, friendly male voice
-      utterance.rate = 0.95        // Slightly faster for youthful energy  
-      utterance.pitch = selectedVoice?.name.toLowerCase().includes('female') ? 0.7 : 1.1  // Lower pitch if female voice selected
-      utterance.volume = 0.85      // Clear and confident
-      
-      // Extra attempt to make female voices sound more masculine
-      const maleNames = ['daniel', 'sam', 'alex', 'thomas', 'aaron', 'david', 'john', 'mike', 'mark', 'ben', 'matt', 'ryan']
+      const maleNames = ['daniel', 'sam', 'alex', 'thomas', 'aaron', 'david', 'john', 'mike', 'mark', 'ben', 'matt', 'ryan', 'male']
       const hasMaleName = maleNames.some((name: string) => selectedVoice?.name.toLowerCase().includes(name))
+      const isDefinitelyFemale = selectedVoice?.name.toLowerCase().includes('female') || 
+                                selectedVoice?.name.toLowerCase().includes('woman') ||
+                                selectedVoice?.name.toLowerCase().includes('girl') ||
+                                ['karen', 'susan', 'victoria', 'alice', 'anna', 'sarah', 'emma', 'zoe', 'kate', 'samantha'].some(name => 
+                                  selectedVoice?.name.toLowerCase().includes(name))
       
-      if (selectedVoice?.name.toLowerCase().includes('female') || 
-          selectedVoice?.name.toLowerCase().includes('woman') ||
-          (!selectedVoice?.name.toLowerCase().includes('male') && !hasMaleName)) {
-        utterance.pitch = 0.6  // Much lower pitch for female voices to sound masculine
-        utterance.rate = 0.9   // Slightly slower to sound more mature
-        console.log('🎤 Applied masculine settings to potentially female voice')
+      // AGGRESSIVE masculinization for all voices that aren't explicitly male
+      if (isDefinitelyFemale || !hasMaleName) {
+        utterance.pitch = 0.4    // VERY low pitch to force masculine sound
+        utterance.rate = 0.85    // Slower for deeper, more mature sound
+        utterance.volume = 0.9   // Slightly louder for confidence
+        console.log('🎤 AGGRESSIVE masculine transformation applied - Ultra low pitch')
+      } else {
+        utterance.pitch = 1.0    // Normal pitch for confirmed male voices
+        utterance.rate = 0.95    // Slightly faster for youthful energy
+        utterance.volume = 0.85  // Clear and confident
+        console.log('🎤 Using confirmed male voice with normal settings')
+      }
+      
+      // Force settings for specific known female voice names that browsers commonly use
+      const commonFemaleVoices = ['microsoft zira', 'google us english', 'alex (enhanced)', 'default', 'google female']
+      if (commonFemaleVoices.some(femaleVoice => selectedVoice?.name.toLowerCase().includes(femaleVoice))) {
+        utterance.pitch = 0.3  // EXTREMELY low pitch
+        utterance.rate = 0.8   // Much slower
+        console.log('🎤 MAXIMUM masculine transformation for known female voice')
       }
       
       speechSynthesisRef.current.speak(utterance)
