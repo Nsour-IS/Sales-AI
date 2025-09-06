@@ -2,7 +2,7 @@
 // The central brain that coordinates memory, tools, and planning to make intelligent decisions
 
 import { getJadMemory, CustomerProfile, ConversationMemory } from './memory';
-import { getJadTools, ToolRegistry, ToolResult } from './tools';
+import { getJadTools, ToolRegistry } from './tools';
 import { getJadPlanner, JadTaskPlanner, Workflow, PlanningContext } from './planner';
 
 export interface DecisionContext {
@@ -195,11 +195,17 @@ export class JadContextualEngine {
 
   private async selectBestAction(
     context: DecisionContext,
-    intentAnalysis: any,
+    intentAnalysis: {
+      primaryIntent: string;
+      confidence: number;
+      subIntents: string[];
+      emotionalContext: string;
+      urgency: 'low' | 'medium' | 'high';
+    },
     customerProfile: CustomerProfile | null,
-    conversationMemory: ConversationMemory
+    _conversationMemory: ConversationMemory
   ): Promise<DecisionResult> {
-    const { primaryIntent, confidence, urgency, emotionalContext } = intentAnalysis;
+    const { primaryIntent, confidence } = intentAnalysis;
 
     // High-confidence, simple intents can be handled directly
     if (confidence > 0.8 && ['greeting', 'simple_inquiry'].includes(primaryIntent)) {
@@ -279,8 +285,11 @@ export class JadContextualEngine {
   }
 
   private async generateDirectResponse(
-    context: DecisionContext,
-    intentAnalysis: any,
+    _context: DecisionContext,
+    intentAnalysis: {
+      primaryIntent: string;
+      emotionalContext: string;
+    },
     customerProfile: CustomerProfile | null
   ): Promise<string> {
     const { primaryIntent, emotionalContext } = intentAnalysis;
@@ -315,7 +324,7 @@ export class JadContextualEngine {
 
   private generateClarifyingQuestions(
     context: DecisionContext,
-    intentAnalysis: any
+    _intentAnalysis: { primaryIntent: string }
   ): string[] {
     const questions = [
       "What type of phone are you most interested in?",

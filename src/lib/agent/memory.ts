@@ -272,7 +272,7 @@ export class JadMemorySystem {
     }
   }
 
-  private async saveCustomerToStorage(customerId: string, profile: CustomerProfile): Promise<void> {
+  private async saveCustomerToStorage(_customerId: string, _profile: CustomerProfile): Promise<void> {
     if (typeof window === 'undefined') return;
     
     try {
@@ -283,7 +283,7 @@ export class JadMemorySystem {
     }
   }
 
-  private async saveConversationToStorage(sessionId: string, memory: ConversationMemory): Promise<void> {
+  private async saveConversationToStorage(_sessionId: string, _memory: ConversationMemory): Promise<void> {
     if (typeof window === 'undefined') return;
     
     try {
@@ -294,7 +294,7 @@ export class JadMemorySystem {
     }
   }
 
-  private async loadCustomerFromStorage(customerId: string): Promise<CustomerProfile | null> {
+  private async loadCustomerFromStorage(_customerId: string): Promise<CustomerProfile | null> {
     // In production, this would query your database
     return null;
   }
