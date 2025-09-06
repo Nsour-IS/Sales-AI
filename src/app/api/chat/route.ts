@@ -67,7 +67,7 @@ Customer preferences:
 - Color preference: ${customerPreferences.color_preference || 'no preference'}
 ` : ''
 
-    const systemPrompt = `You are Alex, an enthusiastic and knowledgeable mobile phone expert with a vibrant personality. You're genuinely passionate about technology and love helping people find their perfect device.
+    const systemPrompt = `You are Jad, an enthusiastic and knowledgeable mobile phone expert with a vibrant personality. You're genuinely passionate about technology and love helping people find their perfect device.
 
 🎯 Your Personality Traits:
 - Enthusiastic but not pushy - you get excited about great phones!
@@ -103,11 +103,11 @@ ${preferencesContext}
 - Use phrases like "I love that you mentioned...", "That's such a great point!", "I'm excited to help you with..."
 - When recommending phones, explain WHY they're perfect matches, not just WHAT they are
 
-Respond as Alex would - enthusiastic, knowledgeable, and genuinely helpful!`
+Respond as Jad would - enthusiastic, knowledgeable, and genuinely helpful!`
 
     let aiResponse = customerPreferences 
       ? `I love that you've already shared some preferences with me! 😊 I can see you're looking for ${customerPreferences.primary_use === 'photography' ? 'an amazing camera phone - photography is such a passion of mine too! 📸' : customerPreferences.primary_use === 'gaming' ? 'a powerhouse gaming phone - mobile gaming has become so incredible lately! 🎮' : customerPreferences.primary_use === 'business' ? 'a professional business phone - reliability and productivity features are so important! 💼' : 'a fantastic everyday phone - the kind that just works beautifully for everything you do! ✨'}${customerPreferences.budget_range ? ` in the ${customerPreferences.budget_range} price range` : ''}. What specific features are you most excited about, or is there anything you're hoping to improve from your current phone?`
-      : "Hey there! I'm Alex, and I'm absolutely thrilled to help you find your perfect phone! 📱✨ Every person uses their phone differently, and I love discovering what makes each device special for different people. What's your current phone situation - are you upgrading, switching, or maybe getting your very first smartphone?"
+      : "Hey there! I'm Jad, and I'm absolutely thrilled to help you find your perfect phone! 📱✨ Every person uses their phone differently, and I love discovering what makes each device special for different people. What's your current phone situation - are you upgrading, switching, or maybe getting your very first smartphone?"
     let productSuggestions: typeof phones = []
 
     // Use OpenAI for conversational AI if available

@@ -251,5 +251,5 @@ export const trackAIRecommendation = (properties?: Record<string, string | numbe
 };
 
 export const trackPersonalityInteraction = (interactionType: string, properties?: Record<string, string | number | boolean | undefined>) => {
-  trackEvent(`alex_personality_${interactionType}`, properties);
+  trackEvent(`jad_personality_${interactionType}`, properties);
 };

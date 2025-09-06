@@ -98,8 +98,8 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
         id: '1',
         sender_type: 'ai',
         message_text: recognizedPhone 
-          ? `Hey there! 👋 I'm Alex, your enthusiastic phone expert! I can see you're checking out the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name} - that's such a great choice to explore! 🌟 I'm genuinely excited to help you find your perfect device. What drew you to this model, and what are you hoping your next phone will do for you?`
-          : "Hey there! 👋 I'm Alex, and I'm absolutely thrilled to meet you! I'm a bit of a phone enthusiast (okay, maybe more than a bit! 😄), and I genuinely love helping people discover their perfect device. Every person uses their phone differently, and that's what makes this so exciting! What's your current phone situation - are you looking to upgrade, or maybe exploring something completely new? 📱✨",
+          ? `Hey there! 👋 I'm Jad, your enthusiastic phone expert! I can see you're checking out the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name} - that's such a great choice to explore! 🌟 I'm genuinely excited to help you find your perfect device. What drew you to this model, and what are you hoping your next phone will do for you?`
+          : "Hey there! 👋 I'm Jad, and I'm absolutely thrilled to meet you! I'm a bit of a phone enthusiast (okay, maybe more than a bit! 😄), and I genuinely love helping people discover their perfect device. Every person uses their phone differently, and that's what makes this so exciting! What's your current phone situation - are you looking to upgrade, or maybe exploring something completely new? 📱✨",
         timestamp: new Date()
       }
       setMessages([welcomeMessage])
@@ -297,7 +297,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
             <Bot className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold">Alex - Your Phone Expert 🌟</h3>
+            <h3 className="font-semibold">Jad - Your Phone Expert 🌟</h3>
             <p className="text-blue-100 text-sm">
               {recognizedPhone ? 'Excited to explore this choice with you!' : 'Ready to find your perfect phone together! 📱'}
             </p>
@@ -388,7 +388,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
               </div>
               <div className="bg-blue-50 p-3 rounded-xl rounded-bl-md border border-blue-200">
                 <div className="flex gap-1 items-center">
-                  <span className="text-xs text-blue-600 mr-2">Alex is thinking</span>
+                  <span className="text-xs text-blue-600 mr-2">Jad is thinking</span>
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
                   <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
