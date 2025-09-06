@@ -1,11 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CameraCapture from '@/components/CameraCapture'
 import ChatInterface from '@/components/ChatInterface'
 import ProductComparison from '@/components/ProductComparison'
 import PreferencesTracker from '@/components/PreferencesTracker'
+import AnalyticsDashboard from '@/components/AnalyticsDashboard'
 import { MobilePhone } from '@/lib/types'
+import { 
+  trackEvent, 
+  trackCameraUsage, 
+  trackChatInteraction, 
+  trackProductComparison, 
+  trackPreferences,
+  trackPhoneRecognition,
+  trackAIRecommendation 
+} from '@/lib/analytics'
 
 interface CustomerPreferences {
   budget_range: 'low' | 'mid' | 'high' | ''
@@ -47,10 +57,25 @@ export default function Home() {
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
   const [customerPreferences, setCustomerPreferences] = useState<CustomerPreferences | null>(null)
 
+  // Track page load and component mount
+  useEffect(() => {
+    trackEvent('page_load', {
+      page: 'home',
+      timestamp: new Date().toISOString(),
+      user_agent: navigator.userAgent,
+      screen_resolution: `${screen.width}x${screen.height}`
+    });
+  }, [])
+
   const handleImageCapture = async (imageData: string) => {
     setIsAnalyzing(true)
+    trackCameraUsage('capture_started', { 
+      image_size: imageData.length,
+      timestamp: new Date().toISOString()
+    })
     
     try {
+      const startTime = Date.now()
       const response = await fetch('/api/analyze-product', {
         method: 'POST',
         headers: {
@@ -60,10 +85,28 @@ export default function Home() {
       })
 
       const result = await response.json()
+      const processingTime = (Date.now() - startTime) / 1000
+
       setAnalysisResult(result)
       setShowCamera(false)
+
+      // Track recognition results
+      trackPhoneRecognition(result.success, {
+        confidence: result.analysis?.confidence_score,
+        processing_time: processingTime,
+        phone_found: !!result.matched_phone,
+        phone_brand: result.matched_phone?.brands?.name,
+        phone_model: result.matched_phone?.display_name
+      })
+
+      trackCameraUsage('analysis_completed', {
+        success: result.success,
+        processing_time: processingTime,
+        confidence: result.analysis?.confidence_score
+      })
     } catch (error) {
       console.error('Analysis failed:', error)
+      trackCameraUsage('analysis_failed', { error: error instanceof Error ? error.message : 'Unknown error' })
     } finally {
       setIsAnalyzing(false)
     }
@@ -71,8 +114,14 @@ export default function Home() {
 
   const handleComparePhones = async (category?: string, priceRange?: string) => {
     setIsLoadingComparison(true)
+    trackProductComparison('compare_started', { 
+      category, 
+      priceRange,
+      trigger: 'quick_compare_button'
+    })
     
     try {
+      const startTime = Date.now()
       const response = await fetch('/api/compare', {
         method: 'POST',
         headers: {
@@ -86,18 +135,41 @@ export default function Home() {
       })
 
       const result = await response.json()
+      const responseTime = (Date.now() - startTime) / 1000
+
       if (result.success) {
         setComparisonPhones(result.phones)
         setShowComparison(true)
+        trackProductComparison('compare_loaded', {
+          category,
+          priceRange,
+          phone_count: result.phones?.length || 0,
+          response_time: responseTime
+        })
+      } else {
+        trackProductComparison('compare_failed', { category, priceRange, error: 'API returned failure' })
       }
     } catch (error) {
       console.error('Comparison failed:', error)
+      trackProductComparison('compare_failed', { 
+        category, 
+        priceRange, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      })
     } finally {
       setIsLoadingComparison(false)
     }
   }
 
   const handleSelectPhoneFromComparison = (phone: MobilePhone & { brands: { name?: string; logo_url?: string } | null }) => {
+    trackProductComparison('phone_selected', {
+      phone_id: phone.id,
+      phone_brand: phone.brands?.name,
+      phone_model: phone.display_name,
+      price_range: phone.price_range,
+      source: 'comparison_modal'
+    })
+
     setAnalysisResult({
       success: true,
       analysis: {
@@ -116,6 +188,12 @@ export default function Home() {
     })
     setShowComparison(false)
     setShowChat(true)
+    
+    trackChatInteraction('started', { 
+      trigger: 'phone_selection',
+      phone_brand: phone.brands?.name,
+      phone_model: phone.display_name
+    })
   }
 
   return (
@@ -144,7 +222,10 @@ export default function Home() {
           ) : (
             <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
               <button
-                onClick={() => setShowCamera(true)}
+                onClick={() => {
+                  setShowCamera(true)
+                  trackCameraUsage('camera_opened', { trigger: 'main_scan_button' })
+                }}
                 className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-5 md:py-6 px-6 rounded-xl transition-colors duration-200 flex items-center justify-center gap-3 text-lg md:text-xl touch-manipulation"
               >
                 📱 Scan Mobile Phone
@@ -155,7 +236,10 @@ export default function Home() {
                   <p className="text-gray-500 text-sm md:text-base mb-4">Or explore phones directly</p>
                   <div className="flex flex-col gap-3">
                     <button
-                      onClick={() => setShowChat(true)}
+                      onClick={() => {
+                        setShowChat(true)
+                        trackChatInteraction('started', { trigger: 'start_chat_button' })
+                      }}
                       className="text-blue-600 hover:text-blue-700 active:text-blue-800 font-medium py-3 md:py-4 px-6 rounded-xl border border-blue-200 hover:bg-blue-50 active:bg-blue-100 transition-colors text-base md:text-lg touch-manipulation"
                     >
                       💬 Start Chat
@@ -299,9 +383,22 @@ export default function Home() {
 
       {/* Customer Preferences Tracker */}
       <PreferencesTracker
-        onPreferencesChange={setCustomerPreferences}
+        onPreferencesChange={(preferences) => {
+          setCustomerPreferences(preferences)
+          trackPreferences('updated', {
+            budget_range: preferences.budget_range,
+            primary_use: preferences.primary_use,
+            screen_size: preferences.screen_size,
+            has_brand_preference: !!preferences.brand_preference,
+            camera_importance: preferences.camera_importance,
+            battery_importance: preferences.battery_importance
+          })
+        }}
         initialPreferences={customerPreferences || undefined}
       />
+
+      {/* Analytics Dashboard */}
+      <AnalyticsDashboard />
     </div>
   )
 }
