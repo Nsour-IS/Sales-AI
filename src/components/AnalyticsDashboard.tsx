@@ -14,7 +14,7 @@ interface AnalyticsData {
   events: Array<{
     event_name: string;
     timestamp: string;
-    properties: Record<string, any>;
+    properties: Record<string, string | number | boolean | undefined>;
   }>;
   summary: {
     total_events: number;

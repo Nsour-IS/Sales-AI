@@ -98,8 +98,8 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
         id: '1',
         sender_type: 'ai',
         message_text: recognizedPhone 
-          ? `I can see you're interested in the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name}! I'm here to help you find the perfect mobile phone. What are you looking for in your next device?`
-          : "Hi! I'm your AI sales assistant. I can help you find the perfect mobile phone based on your needs. What are you looking for?",
+          ? `Hey there! 👋 I'm Alex, your enthusiastic phone expert! I can see you're checking out the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name} - that's such a great choice to explore! 🌟 I'm genuinely excited to help you find your perfect device. What drew you to this model, and what are you hoping your next phone will do for you?`
+          : "Hey there! 👋 I'm Alex, and I'm absolutely thrilled to meet you! I'm a bit of a phone enthusiast (okay, maybe more than a bit! 😄), and I genuinely love helping people discover their perfect device. Every person uses their phone differently, and that's what makes this so exciting! What's your current phone situation - are you looking to upgrade, or maybe exploring something completely new? 📱✨",
         timestamp: new Date()
       }
       setMessages([welcomeMessage])
@@ -157,7 +157,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender_type: 'ai',
-        message_text: "I'm having trouble right now. Can you try asking again?",
+        message_text: "Oops! 😅 I seem to be having a little technical hiccup right now. Could you try asking me again? I'm still here and excited to help you find your perfect phone!",
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -265,7 +265,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender_type: 'ai',
-        message_text: "I'm having trouble right now. Can you try asking again?",
+        message_text: "Oops! 😅 I seem to be having a little technical hiccup right now. Could you try asking me again? I'm still here and excited to help you find your perfect phone!",
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -297,9 +297,9 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
             <Bot className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold">Sales AI Assistant</h3>
+            <h3 className="font-semibold">Alex - Your Phone Expert 🌟</h3>
             <p className="text-blue-100 text-sm">
-              {recognizedPhone ? 'Product Expert' : 'Ready to help you find the perfect phone'}
+              {recognizedPhone ? 'Excited to explore this choice with you!' : 'Ready to find your perfect phone together! 📱'}
             </p>
           </div>
           
@@ -383,14 +383,15 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
         {isTyping && (
           <div className="flex justify-start">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-gray-600" />
+              <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-blue-600" />
               </div>
-              <div className="bg-gray-100 p-3 rounded-xl rounded-bl-md">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              <div className="bg-blue-50 p-3 rounded-xl rounded-bl-md border border-blue-200">
+                <div className="flex gap-1 items-center">
+                  <span className="text-xs text-blue-600 mr-2">Alex is thinking</span>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
                 </div>
               </div>
             </div>
@@ -408,7 +409,7 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder={isListening ? "Listening..." : isVoiceTyping ? "Voice typing..." : "Ask about phones, compare models, or get recommendations..."}
+            placeholder={isListening ? "🎤 Listening... speak away!" : isVoiceTyping ? "✨ Converting your voice to text..." : "Tell me what you're looking for, ask about phones, or just say hi! 😊"}
             className={`flex-1 p-4 md:p-5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-base md:text-lg ${
               isListening ? 'bg-red-50 border-red-300' : isVoiceTyping ? 'bg-blue-50 border-blue-300' : ''
             } touch-manipulation`}

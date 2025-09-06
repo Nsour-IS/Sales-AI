@@ -14,7 +14,7 @@ import {
   trackProductComparison, 
   trackPreferences,
   trackPhoneRecognition,
-  trackAIRecommendation 
+  trackPersonalityInteraction
 } from '@/lib/analytics'
 
 interface CustomerPreferences {
@@ -208,7 +208,7 @@ export default function Home() {
               📱 Sales AI
             </h1>
             <p className="text-gray-600 text-sm md:text-base leading-relaxed max-w-sm mx-auto">
-              Scan any mobile phone and chat with our AI sales assistant for personalized recommendations
+              Meet Alex! Scan any mobile phone and chat with our enthusiastic AI expert for personalized recommendations 🌟
             </p>
           </div>
 
@@ -239,10 +239,11 @@ export default function Home() {
                       onClick={() => {
                         setShowChat(true)
                         trackChatInteraction('started', { trigger: 'start_chat_button' })
+                        trackPersonalityInteraction('chat_started', { trigger: 'main_button' })
                       }}
                       className="text-blue-600 hover:text-blue-700 active:text-blue-800 font-medium py-3 md:py-4 px-6 rounded-xl border border-blue-200 hover:bg-blue-50 active:bg-blue-100 transition-colors text-base md:text-lg touch-manipulation"
                     >
-                      💬 Start Chat
+                      💬 Chat with Alex
                     </button>
                     <div className="text-xs md:text-sm text-gray-400 mb-2 mt-2">Quick Compare</div>
                     <div className="grid grid-cols-2 gap-3">
@@ -288,10 +289,13 @@ export default function Home() {
                 <h2 className="text-xl font-semibold">Analysis Results</h2>
                 {!showChat && (
                   <button
-                    onClick={() => setShowChat(true)}
+                    onClick={() => {
+                      setShowChat(true)
+                      trackPersonalityInteraction('phone_inquiry', { phone_brand: analysisResult.matched_phone?.brands?.name })
+                    }}
                     className="text-sm bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg transition-colors"
                   >
-                    💬 Ask AI About This Phone
+                    💬 Ask Alex About This Phone
                   </button>
                 )}
               </div>
@@ -342,7 +346,7 @@ export default function Home() {
           <div className="flex-1 max-w-2xl mx-auto xl:mx-0">
             <div className="h-full flex flex-col" style={{ maxHeight: '700px' }}>
               <div className="mb-4 flex justify-between items-center bg-white rounded-xl shadow-sm p-4">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900">🤖 AI Sales Assistant</h2>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">🌟 Alex - Your Phone Expert</h2>
                 <button
                   onClick={() => setShowChat(false)}
                   className="text-gray-500 hover:text-gray-700 active:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"

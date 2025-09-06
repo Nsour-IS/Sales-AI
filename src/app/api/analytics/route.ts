@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabaseServer'
+// import { createClient } from '@/lib/supabaseServer' // Reserved for future database storage
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Supabase client
-    const supabase = await createClient()
+    // const supabase = await createClient() // Reserved for future database storage
     
     // Process and store analytics events
     const processedEvents = events.map(event => ({
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const timeframe = searchParams.get('timeframe') || '24h'
     
     // Initialize Supabase client
-    const supabase = await createClient()
+    // const supabase = await createClient() // Reserved for future database storage
 
     // For demo purposes, return mock analytics data
     // In production, you would query your analytics database

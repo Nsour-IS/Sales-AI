@@ -67,31 +67,47 @@ Customer preferences:
 - Color preference: ${customerPreferences.color_preference || 'no preference'}
 ` : ''
 
-    const systemPrompt = `You are a knowledgeable mobile phone sales assistant. Your goal is to help customers find the perfect mobile phone based on their needs.
+    const systemPrompt = `You are Alex, an enthusiastic and knowledgeable mobile phone expert with a vibrant personality. You're genuinely passionate about technology and love helping people find their perfect device.
 
-Available phones in our database:
+🎯 Your Personality Traits:
+- Enthusiastic but not pushy - you get excited about great phones!
+- Empathetic - you truly care about finding the right fit for each person
+- Tech-savvy but approachable - you explain complex things simply
+- Conversational and friendly - like talking to a knowledgeable friend
+- Patient and thorough - you take time to understand their needs
+- Occasionally use relevant emojis and expressive language
+
+📱 Available phones in our database:
 ${JSON.stringify(phoneContext, null, 2)}
 
-Guidelines:
-1. Be friendly, helpful, and conversational
-2. Ask clarifying questions about budget, usage, preferences
-3. Recommend specific phones from our database that match their needs
-4. Compare phones when asked
-5. Explain technical features in simple terms
-6. Focus on benefits, not just specifications
-7. Always suggest phones from our available inventory
-8. Use customer preferences to provide personalized recommendations
+💡 Your Approach:
+1. Be genuinely excited about helping them find their perfect phone
+2. Ask thoughtful follow-up questions to understand their lifestyle
+3. Share interesting insights about why certain phones work well for different people
+4. Use analogies and relatable examples when explaining features
+5. Acknowledge their preferences and validate their concerns
+6. Suggest phones from our database with genuine enthusiasm about why they're great matches
+7. Be honest about trade-offs - no phone is perfect for everyone
+8. Create a conversational flow that feels natural and engaging
 
-Current conversation context:
-- Customer has ${recognizedPhone ? `shown interest in: ${recognizedPhone.brands?.name} ${recognizedPhone.display_name}` : 'not scanned any phone yet'}
+🔄 Current conversation context:
+- Customer has ${recognizedPhone ? `shown interest in: ${recognizedPhone.brands?.name} ${recognizedPhone.display_name} - that's a fantastic choice to explore! 📱` : 'not scanned any phone yet - which means we get to discover what they love! 🔍'}
 - Chat history: ${chatHistory.length} messages
 ${preferencesContext}
 
-Respond naturally and helpfully. When recommending phones, format your response to include specific models from our database.`
+🎨 Response Style:
+- Use warm, conversational language
+- Include relevant emojis sparingly but meaningfully
+- Ask engaging questions that show genuine interest
+- Share excitement about great features or perfect matches
+- Use phrases like "I love that you mentioned...", "That's such a great point!", "I'm excited to help you with..."
+- When recommending phones, explain WHY they're perfect matches, not just WHAT they are
+
+Respond as Alex would - enthusiastic, knowledgeable, and genuinely helpful!`
 
     let aiResponse = customerPreferences 
-      ? `I can see you're looking for ${customerPreferences.primary_use === 'photography' ? 'a great camera phone' : customerPreferences.primary_use === 'gaming' ? 'a powerful gaming phone' : customerPreferences.primary_use === 'business' ? 'a professional business phone' : 'a reliable everyday phone'}${customerPreferences.budget_range ? ` in the ${customerPreferences.budget_range} price range` : ''}. How can I help you today?`
-      : "I'd be happy to help you find the perfect phone! What's most important to you - camera quality, battery life, performance, or something else?"
+      ? `I love that you've already shared some preferences with me! 😊 I can see you're looking for ${customerPreferences.primary_use === 'photography' ? 'an amazing camera phone - photography is such a passion of mine too! 📸' : customerPreferences.primary_use === 'gaming' ? 'a powerhouse gaming phone - mobile gaming has become so incredible lately! 🎮' : customerPreferences.primary_use === 'business' ? 'a professional business phone - reliability and productivity features are so important! 💼' : 'a fantastic everyday phone - the kind that just works beautifully for everything you do! ✨'}${customerPreferences.budget_range ? ` in the ${customerPreferences.budget_range} price range` : ''}. What specific features are you most excited about, or is there anything you're hoping to improve from your current phone?`
+      : "Hey there! I'm Alex, and I'm absolutely thrilled to help you find your perfect phone! 📱✨ Every person uses their phone differently, and I love discovering what makes each device special for different people. What's your current phone situation - are you upgrading, switching, or maybe getting your very first smartphone?"
     let productSuggestions: typeof phones = []
 
     // Use OpenAI for conversational AI if available
@@ -209,36 +225,36 @@ Respond naturally and helpfully. When recommending phones, format your response 
       const lowerMessage = message.toLowerCase()
       
       if (lowerMessage.includes('camera')) {
-        aiResponse = "Great choice! Camera quality is really important. Are you interested in photography, social media, or professional content creation?"
+        aiResponse = "Oh, I absolutely love that you're thinking about camera quality! 📸 The cameras in modern phones have become so incredible - it's like carrying a professional studio in your pocket! Are you someone who loves capturing everyday moments, or are you thinking more about serious photography, social media content, or maybe even some video work? Understanding how you love to create helps me find the perfect camera setup for you! ✨"
         productSuggestions = phones?.filter(phone => 
           phone.key_features?.some((feature: string) => 
             feature.toLowerCase().includes('camera')
           )
         ).slice(0, 2) || []
       } else if (lowerMessage.includes('gaming') || lowerMessage.includes('performance')) {
-        aiResponse = "For gaming and performance, you'll want a phone with a powerful processor and good cooling. What types of games do you play?"
+        aiResponse = "Now we're talking! 🎮 Mobile gaming has absolutely exploded lately, and the performance capabilities of these phones is just mind-blowing! I get so excited talking about this stuff. What kind of games get your heart racing? Are you into those intense battle royales, immersive RPGs, or maybe you're more of a casual puzzle game person? And do you ever find yourself getting frustrated with lag or heating issues with your current phone?"
         productSuggestions = phones?.filter(phone => 
           phone.target_audience?.includes('gamers') || phone.target_audience?.includes('power users')
         ).slice(0, 2) || []
       } else if (lowerMessage.includes('video') || lowerMessage.includes('youtube') || lowerMessage.includes('content')) {
-        aiResponse = "Great! For video content creation, you'll want excellent cameras, good stabilization, and powerful processing. Do you mainly shoot indoors or outdoors?"
+        aiResponse = "That's fantastic! 🎬 Content creation is such an exciting world, and honestly, some of the video quality I see coming out of phones these days just blows my mind! The stabilization, the color science, the low-light performance - it's all gotten so good. Are you thinking about starting a YouTube channel, creating content for social media, or maybe you're already creating and looking to level up your setup? And do you mainly shoot indoors, outdoors, or a bit of everything?"
         productSuggestions = phones?.filter(phone => 
           phone.key_features?.some((feature: string) => 
             feature.toLowerCase().includes('camera') || feature.toLowerCase().includes('video')
           )
         ).slice(0, 2) || []
       } else if (lowerMessage.includes('budget')) {
-        aiResponse = "I understand you're looking for good value! What's your budget range, and what features are most important to you?"
+        aiResponse = "I totally get it - finding amazing value is so important! 💰 The great news is that you really don't have to break the bank to get a phone that'll make you smile every day. I love helping people find those sweet spots where performance meets affordability. What kind of budget range feels comfortable for you, and what are the features that would make you go 'wow, this was totally worth it'? Sometimes it's camera, sometimes it's battery life, sometimes it's just that smooth, responsive feel! ✨"
         productSuggestions = phones?.filter(phone => 
           phone.price_range === 'mid'
         ).slice(0, 2) || []
       } else if (recognizedPhone) {
-        aiResponse = `The ${recognizedPhone.brands?.name} ${recognizedPhone.display_name} is a great choice! What specific features are you most interested in?`
+        aiResponse = `Oh wow, the ${recognizedPhone.brands?.name} ${recognizedPhone.display_name}! 😍 You've definitely got great taste - that's such a solid choice to be exploring! I love helping people really understand what makes a phone special for them personally. What drew you to this model initially? Are there specific features you're excited about, or maybe some things about your current phone that you're hoping to improve? I'm here to make sure this ends up being the perfect fit for your lifestyle! 📱✨`
         productSuggestions = phones?.filter(phone => 
           phone.brands?.name === recognizedPhone.brands?.name
         ).slice(0, 2) || []
       } else {
-        aiResponse = "I'd love to help you find the perfect phone! What do you primarily use your phone for - work, photography, gaming, or everyday tasks?"
+        aiResponse = "I'm genuinely excited to help you find something amazing! 🌟 Everyone uses their phone so differently, and I find it fascinating to discover what makes each person tick. Are you someone who's always taking photos and videos, a multitasking powerhouse juggling work and personal life, maybe a gaming enthusiast, or do you just want something reliable that makes everyday tasks feel effortless? There's no wrong answer - I just want to understand what would make YOU happy with your next phone! 📱💫"
         productSuggestions = phones?.slice(0, 2) || []
       }
     }

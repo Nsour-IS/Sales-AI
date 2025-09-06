@@ -6,7 +6,7 @@ export interface AnalyticsEvent {
   session_id: string;
   user_agent: string;
   page_url: string;
-  properties: Record<string, any>;
+  properties: Record<string, string | number | boolean | undefined>;
 }
 
 export interface SessionData {
@@ -90,7 +90,7 @@ class AnalyticsManager {
     }
   }
 
-  public track(eventName: string, properties: Record<string, any> = {}) {
+  public track(eventName: string, properties: Record<string, string | number | boolean | undefined> = {}) {
     if (!this.isEnabled) return;
 
     const event: AnalyticsEvent = {
@@ -222,30 +222,34 @@ export function getAnalytics(): AnalyticsManager {
 }
 
 // Convenience functions for tracking specific events
-export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+export const trackEvent = (eventName: string, properties?: Record<string, string | number | boolean | undefined>) => {
   getAnalytics().track(eventName, properties);
 };
 
-export const trackCameraUsage = (action: string, properties?: Record<string, any>) => {
+export const trackCameraUsage = (action: string, properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent(`camera_${action}`, properties);
 };
 
-export const trackChatInteraction = (action: string, properties?: Record<string, any>) => {
+export const trackChatInteraction = (action: string, properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent(`chat_${action}`, properties);
 };
 
-export const trackProductComparison = (action: string, properties?: Record<string, any>) => {
+export const trackProductComparison = (action: string, properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent(`comparison_${action}`, properties);
 };
 
-export const trackPreferences = (action: string, properties?: Record<string, any>) => {
+export const trackPreferences = (action: string, properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent(`preferences_${action}`, properties);
 };
 
-export const trackPhoneRecognition = (success: boolean, properties?: Record<string, any>) => {
+export const trackPhoneRecognition = (success: boolean, properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent('phone_recognition', { success, ...properties });
 };
 
-export const trackAIRecommendation = (properties?: Record<string, any>) => {
+export const trackAIRecommendation = (properties?: Record<string, string | number | boolean | undefined>) => {
   trackEvent('ai_recommendation', properties);
+};
+
+export const trackPersonalityInteraction = (interactionType: string, properties?: Record<string, string | number | boolean | undefined>) => {
+  trackEvent(`alex_personality_${interactionType}`, properties);
 };
