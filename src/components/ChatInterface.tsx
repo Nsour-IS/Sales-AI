@@ -191,30 +191,70 @@ export default function ChatInterface({ recognizedPhone, customerPreferences }: 
       // Get available voices
       const voices = speechSynthesisRef.current.getVoices()
       
-      // Try to find a good young male voice
-      const maleVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('male') ||
-        voice.name.toLowerCase().includes('daniel') ||
-        voice.name.toLowerCase().includes('alex') ||
-        voice.name.toLowerCase().includes('sam') ||
-        voice.name.toLowerCase().includes('thomas') ||
-        voice.name.toLowerCase().includes('aaron') ||
-        voice.name.toLowerCase().includes('en')
-      )
+      // Debug: Log available voices to console for troubleshooting
+      console.log('🎤 Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })))
       
-      // Fallback to any English male voice or first available voice
-      const selectedVoice = maleVoice || voices.find(voice => 
-        voice.lang.startsWith('en') && voice.name.toLowerCase().includes('male')
+      // Try to find a good young male voice - prioritize specific male names
+      const maleVoice = voices.find(voice => {
+        const name = voice.name.toLowerCase()
+        const lang = voice.lang.toLowerCase()
+        
+        // Prioritize specific male names
+        const maleNames = ['daniel', 'sam', 'alex', 'thomas', 'aaron', 'david', 'john', 'mike', 'mark', 'ben', 'matt', 'ryan']
+        if (maleNames.some(maleName => name.includes(maleName))) return true
+        
+        // Look for explicit "male" in the name
+        if (name.includes('male')) return true
+        
+        // Chrome/Safari specific male voices
+        if (name.includes('male') || name.includes('man')) return true
+        
+        return false
+      })
+      
+      // Fallback strategy: Look for voices that are likely male based on patterns
+      const fallbackMaleVoice = !maleVoice ? voices.find(voice => {
+        const name = voice.name.toLowerCase()
+        const lang = voice.lang.toLowerCase()
+        
+        // Avoid clearly female voices
+        const femaleIndicators = ['female', 'woman', 'girl', 'lady', 'karen', 'susan', 'victoria', 'alice', 'anna', 'sarah', 'emma']
+        if (femaleIndicators.some(female => name.includes(female))) return false
+        
+        // Prefer English voices
+        if (!lang.startsWith('en')) return false
+        
+        // Look for any remaining English voice that isn't obviously female
+        return true
+      }) : null
+      
+      // Final selection
+      const selectedVoice = maleVoice || fallbackMaleVoice || voices.find(voice => 
+        voice.lang.startsWith('en')
       ) || voices[0]
+      
+      console.log('🎤 Selected voice for Jad:', selectedVoice?.name, selectedVoice?.lang)
       
       if (selectedVoice) {
         utterance.voice = selectedVoice
       }
       
       // Voice settings for young, friendly male voice
-      utterance.rate = 0.95        // Slightly faster for youthful energy
-      utterance.pitch = 1.1        // Slightly higher for younger sound
+      utterance.rate = 0.95        // Slightly faster for youthful energy  
+      utterance.pitch = selectedVoice?.name.toLowerCase().includes('female') ? 0.7 : 1.1  // Lower pitch if female voice selected
       utterance.volume = 0.85      // Clear and confident
+      
+      // Extra attempt to make female voices sound more masculine
+      const maleNames = ['daniel', 'sam', 'alex', 'thomas', 'aaron', 'david', 'john', 'mike', 'mark', 'ben', 'matt', 'ryan']
+      const hasMaleName = maleNames.some((name: string) => selectedVoice?.name.toLowerCase().includes(name))
+      
+      if (selectedVoice?.name.toLowerCase().includes('female') || 
+          selectedVoice?.name.toLowerCase().includes('woman') ||
+          (!selectedVoice?.name.toLowerCase().includes('male') && !hasMaleName)) {
+        utterance.pitch = 0.6  // Much lower pitch for female voices to sound masculine
+        utterance.rate = 0.9   // Slightly slower to sound more mature
+        console.log('🎤 Applied masculine settings to potentially female voice')
+      }
       
       speechSynthesisRef.current.speak(utterance)
     }
